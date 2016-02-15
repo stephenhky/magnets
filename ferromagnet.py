@@ -26,4 +26,16 @@ def ferromagnet_free_energy(r, u, H):
     # return free_energy, [m], free_energy_grad, cal_m
     return free_energy, [m], free_energy_grad
 
+def ferromagnet_grad_descent(free_energy_grad, init_m, learning_rate=0.1, tol=1e-16, max_iter=10000):
+    update = lambda mval: mval - learning_rate*free_energy_grad(mval)
 
+    diff = 1e+16
+    step = 0
+    current_mval = init_m
+    while diff > tol and step < max_iter:
+        previous_mval = current_mval
+        current_mval = update(current_mval)
+        diff = np.abs(current_mval-previous_mval)
+        step += 1
+
+    return current_mval
