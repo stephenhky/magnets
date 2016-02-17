@@ -5,16 +5,15 @@ import theano.tensor as T
 def ferromagnet_free_energy(r, u, H):
     # variables
     m = T.dscalar('m')
+    nsteps = T.iscalar('nsteps')
 
     # free energy and its gradient
     fe = lambda m: 0.5*r*m*m+0.25*u*m*m*m*m-H*m
-    F = fe(m)
-    grad_m = T.grad(F, m)
-    free_energy = theano.function(inputs=[m], outputs=F)
+    grad_m = T.grad(fe(m), m)
+    free_energy = theano.function(inputs=[m], outputs=fe(m))
     free_energy_grad = theano.function(inputs=[m], outputs=grad_m)
 
-    # minimization
-    nsteps = T.iscalar('nsteps')
+    # gradient descent
     def updatefcn(m1, gm1):
         m2 = m1-0.1*gm1
         gm2 = T.grad(fe(m2), m2)
@@ -38,7 +37,6 @@ def ferromagnet_grad_descent(free_energy_grad, init_m, learning_rate=0.1, tol=1e
     while diff > tol and step < max_iter:
         previous_mval = current_mval
         current_mval = update(current_mval)
-        print current_mval
         diff = np.abs(current_mval-previous_mval)
         step += 1
 
