@@ -13,18 +13,17 @@ def ferromagnet_free_energy(r, u, H):
     free_energy_grad = theano.function(inputs=[m], outputs=grad_m)
 
     # minimization
-    # nsteps = T.iscalar('nsteps')
-    # init_m = T.dscalar('init_m')
-    # m_seq = T.dscalars('m_seq')
-    # grad_results, grad_updates = theano.scan(fn=lambda vars: vars - 0.1*grad_m,
-    #                                          outputs_info=[{'initial': init_m}],
-    #                                          sequences=m_seq,
-    #                                          n_steps=nsteps)
-    # final_m = grad_results[-1]
-    # cal_m = theano.function(inputs=[init_m, nsteps], outputs=final_m, updates=grad_updates)
+    nsteps = T.iscalar('nsteps')
+    grad_results, grad_updates = theano.scan(fn=lambda vars, gvars: vars - 0.1*gvars,
+                                             outputs_info=[m],
+                                             sequences=[],
+                                             non_sequences=[grad_m],
+                                             n_steps=nsteps)
+    final_m = grad_results[-1]
+    cal_m = theano.function(inputs=[m, nsteps], outputs=final_m, updates=grad_updates)
 
-    # return free_energy, [m], free_energy_grad, cal_m
-    return free_energy, [m], free_energy_grad
+    return free_energy, [m], free_energy_grad, cal_m
+    # return free_energy, [m], free_energy_grad
 
 def ferromagnet_grad_descent(free_energy_grad, init_m, learning_rate=0.1, tol=1e-16, max_iter=10000):
     update = lambda mval: mval - learning_rate*free_energy_grad(mval)
